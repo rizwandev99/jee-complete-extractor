@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>JEE Extractor · Command Deck</title>
   <!-- KaTeX CSS & JS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
@@ -42,11 +42,15 @@
       color: var(--text-main);
       font-family: var(--font-sans);
       font-size: 14px;
-      line-height: 1.5;
-      padding: 24px;
+      line-height: 1.6;
+      padding: 16px;
       min-height: 100vh;
       display: flex;
       justify-content: center;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      box-sizing: border-box;
     }
 
     /* Terminal Frame Window */
@@ -61,6 +65,7 @@
       flex-direction: column;
       overflow: hidden;
       position: relative;
+      box-sizing: border-box;
     }
 
     /* Window Header */
