@@ -163,7 +163,7 @@ def extract_dynamic_pdf(pdf_path, base_dir, crops_dir, diagrams_dir):
     matrix = fitz.Matrix(2.0, 2.0)
     q_counter = 1
 
-    mistral_key = os.environ.get("MISTRAL_API_KEY", "mstrl_stdbt4tKIZ5v0dAykQUR6ValuSGFx15u_1gEULP")
+    mistral_key = os.environ.get("MISTRAL_API_KEY", "")
 
     q_pattern = re.compile(r'^(?:Q\.?\s*(\d+)|Question\s*(\d+)|\b(\d+)\.\s+)', re.IGNORECASE)
     opt_pattern = re.compile(r'\(([A-D])\)\s*([^(\n]+)')
