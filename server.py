@@ -42,7 +42,7 @@ app.add_middleware(
 app.mount("/output", StaticFiles(directory=OUTPUT_DIR), name="output")
 app.mount("/dashboard", StaticFiles(directory=DASHBOARD_DIR), name="dashboard")
 
-@app.get("/", response_class=HTMLResponse)
+@app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
 async def get_index():
     index_file = os.path.join(DASHBOARD_DIR, "dashboard.html")
     if os.path.exists(index_file):
