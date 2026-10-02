@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JEE Extractor · Command Deck</title>
+  <!-- KaTeX CSS & JS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --bg-terminal: #0b0d10;
+      --bg-surface: #111419;
+      --bg-card: #151921;
+      --bg-card-hover: #1a202c;
+      --border-subtle: #1e2229;
+      --border-accent: rgba(16, 185, 129, 0.4);
+      --accent-emerald: #10b981;
+      --accent-emerald-light: #34d399;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.15);
+      --accent-cyan: #38bdf8;
+      --accent-violet: #818cf8;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --text-dim: #6b7280;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #07080a;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 24px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Terminal Frame Window */
+    .terminal-window {
+      width: 100%;
+      max-width: 1480px;
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Window Header */
+    .window-header {
+      background: #090a0d;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .mac-dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mac-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #ef4444; }
+    .dot-yellow { background: #f59e0b; }
+    .dot-green { background: #10b981; }
+
+    .window-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .window-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-emerald-light);
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.9); }
+    }
+
+    /* Terminal Body Container */
+    .terminal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* Command Banner / Prompt Box */
+    .command-hero {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .prompt-line {
+      font-family: var(--font-mono);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .prompt-symbol {
+      color: var(--accent-cyan);
+      font-weight: 700;
+    }
+
+    .prompt-text {
+      color: var(--accent-emerald-light);
+      font-weight: 600;
+    }
+
+    .prompt-arrow {
+      color: var(--accent-cyan);
+      margin: 0 4px;
+    }
+
+    /* Pill Badges */
+    .capsule-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 9999px;
+      border: 1px solid var(--accent-emerald);
+      color: var(--accent-emerald-light);
+      background: rgba(16, 185, 129, 0.08);
+      padding: 4px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    .bullet-diamond {
+      font-size: 10px;
+      color: var(--accent-emerald-light);
+    }
+
+    /* Action Deck Dock */
+    .action-dock {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .dock-btn {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      padding: 8px 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .dock-btn:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .dock-btn-primary {
+      border-color: var(--accent-emerald);
+      color: var(--accent-emerald-light);
+      background: rgba(16, 185, 129, 0.1);
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+    }
+
+    .dock-btn-primary:hover {
+      background: rgba(16, 185, 129, 0.18);
+      box-shadow: 0 0 18px rgba(16, 185, 129, 0.35);
+    }
+
+    .dock-btn-danger {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    .dock-btn-danger:hover {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* Metrics Summary Bar */
+    .metrics-deck {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .metric-cell {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .metric-caption {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+    }
+
+    .metric-num {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .metric-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: normal;
+    }
+
+    /* Filter & Search Bar */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 10px 16px;
+    }
+
+    .search-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 6px 12px;
+      flex: 1;
+      max-width: 360px;
+    }
+
+    .search-input-wrap input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      width: 100%;
+    }
+
+    .filter-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 5px 12px;
+      border-radius: 9999px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-pill-btn.active, .filter-pill-btn:hover {
+      background: rgba(56, 189, 248, 0.1);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+      gap: 20px;
+    }
+
+    /* Question Card */
+    .question-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+
+    .question-card:hover {
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-meta-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .qid-capsule {
+      background: rgba(129, 140, 248, 0.15);
+      border: 1px solid rgba(129, 140, 248, 0.35);
+      color: #a5b4fc;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .section-capsule {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    .type-capsule {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--accent-cyan);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+    }
+
+    .page-indicator {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Question Statement Text */
+    .question-text {
+      color: var(--text-main);
+      font-size: 14px;
+      line-height: 1.6;
+      word-break: break-word;
+    }
+
+    /* Options Grid */
+    .options-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .option-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 13px;
+      transition: background 0.15s ease;
+    }
+
+    .option-row:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .option-key {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--accent-cyan);
+      width: 22px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .option-text {
+      flex: 1;
+      color: var(--text-main);
+    }
+
+    /* Numerical Box */
+    .numerical-box {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px dashed rgba(245, 158, 11, 0.35);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #fbbf24;
+    }
+
+    /* Native Matching Table */
+    .matching-table-wrap {
+      margin-top: 6px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--bg-card);
+    }
+
+    .matching-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .matching-table th {
+      background: #181d26;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 12px;
+      text-align: left;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent-cyan);
+      font-weight: 600;
+    }
+
+    .matching-table td {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: top;
+      color: var(--text-main);
+    }
+
+    .matching-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .col-key-tag {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent-emerald-light);
+      margin-right: 6px;
+    }
+
+    /* Diagram Section */
+    .diagram-panel {
+      background: #090b0e;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .diagram-panel-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--accent-emerald-light);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .diagram-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      background: #fff;
+      cursor: zoom-in;
+      transition: opacity 0.2s;
+    }
+
+    .diagram-img:hover {
+      opacity: 0.95;
+    }
+
+    /* Exam Paper Snippet Box */
+    .snippet-box {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .snippet-toggle-header {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .snippet-toggle-header:hover {
+      color: var(--text-muted);
+    }
+
+    .snippet-img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      border: 1px solid var(--border-subtle);
+      background: #fff;
+      display: none;
+      margin-top: 6px;
+    }
+
+    .snippet-img.show {
+      display: block;
+    }
+
+    /* Lightbox Modal */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .lightbox-overlay.active {
+      display: flex;
+    }
+
+    .lightbox-content {
+      background: var(--bg-terminal);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      max-width: 90vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .lightbox-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .lightbox-close {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .lightbox-img {
+      max-width: 100%;
+      max-height: 75vh;
+      object-fit: contain;
+      border-radius: 6px;
+    }
+
+    /* Loading / Empty States */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-subtle);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Processing Overlay */
+    .process-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .process-modal.active {
+      display: flex;
+    }
+
+    .process-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-accent);
+      border-radius: 14px;
+      padding: 28px 36px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="terminal-window">
+    <!-- Clean User-Friendly Header -->
+    <header class="window-header">
+      <div class="mac-dots">
+        <span class="mac-dot dot-red"></span>
+        <span class="mac-dot dot-yellow"></span>
+        <span class="mac-dot dot-green"></span>
+      </div>
+      <div class="window-title">
+        <span style="font-weight: 600; color: #fff;">📚 JEE Advanced · Question Paper Viewer</span>
+      </div>
+      <div class="window-status" id="header-status-pill">
+        <span class="pulse-dot" id="header-status-dot"></span>
+        <span id="header-status-text">NO PDF LOADED</span>
+      </div>
+    </header>
+
+    <div class="terminal-body">
+      <!-- User-Friendly Portal Hero & Action Bar -->
+      <section class="command-hero">
+        <div class="hero-top" style="align-items: center;">
+          <div>
+            <h1 style="font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.02em; margin-bottom: 4px;">
+              IIT-JEE Mathematics Question Paper
+            </h1>
+            <p style="color: var(--text-muted); font-size: 13px;">
+              Digitalized Questions with LaTeX Formulas, Native Tables & Isolated Diagrams
+            </p>
+          </div>
+
+          <!-- Action Buttons Bar -->
+          <div class="action-dock" style="margin-top: 0;">
+            <input type="file" id="pdf-file-input" accept=".pdf" style="display: none;" onchange="handlePdfUpload(event)">
+            <button class="dock-btn dock-btn-primary" onclick="document.getElementById('pdf-file-input').click()">
+              <span>📄 Upload New PDF</span>
+            </button>
+
+            <button class="dock-btn dock-btn-danger" onclick="clearAllData()">
+              <span>🗑️ Clear All</span>
+            </button>
+
+            <button class="dock-btn" onclick="fetchQuestions()">
+              <span>🔄 Refresh</span>
+            </button>
+
+            <button class="dock-btn" onclick="toggleAllSnippets()">
+              <span id="snippets-toggle-label">👁️ Show Original Snippets</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Clean Overview Stats -->
+      <section class="metrics-deck">
+        <div class="metric-cell">
+          <span class="metric-caption">Total Questions</span>
+          <div class="metric-num" id="stat-total">18 <span class="metric-meta">Questions</span></div>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-caption">Exam Sections</span>
+          <div class="metric-num">4 <span class="metric-meta">Sections</span></div>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-caption">Math Formatting</span>
+          <div class="metric-num" style="color: var(--accent-emerald-light);">KaTeX <span class="metric-meta">Active</span></div>
+        </div>
+        <div class="metric-cell">
+          <span class="metric-caption">Diagrams & Tables</span>
+          <div class="metric-num" style="color: var(--accent-cyan);" id="stat-visuals">High-Res <span class="metric-meta">& Digital Tables</span></div>
+        </div>
+      </section>
+
+      <!-- Search & Section Filters -->
+      <section class="filter-bar">
+        <div class="search-input-wrap">
+          <span>🔍</span>
+          <input type="text" id="search-input" placeholder="Search question text, formulas, or question number (e.g. Q5)..." oninput="applyFilters()">
+        </div>
+
+        <div class="filter-pills">
+          <button class="filter-pill-btn active" data-filter="all" onclick="setFilter('all', this)">All Questions</button>
+          <button class="filter-pill-btn" data-filter="sec-1" onclick="setFilter('sec-1', this)">Section 1 (Single)</button>
+          <button class="filter-pill-btn" data-filter="sec-2" onclick="setFilter('sec-2', this)">Section 2 (Multiple)</button>
+          <button class="filter-pill-btn" data-filter="sec-3" onclick="setFilter('sec-3', this)">Section 3 (Paragraphs)</button>
+          <button class="filter-pill-btn" data-filter="sec-4" onclick="setFilter('sec-4', this)">Section 4 (Match)</button>
+          <button class="filter-pill-btn" data-filter="diagram" onclick="setFilter('diagram', this)">With Diagrams</button>
+        </div>
+      </section>
+
+      <!-- Questions Cards Grid -->
+      <main class="cards-grid" id="cards-grid">
+        <div class="empty-state">
+          <div>Loading questions dataset...</div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div class="lightbox-overlay" id="lightbox-modal" onclick="closeLightbox(event)">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+      <div class="lightbox-header">
+        <span id="lightbox-caption" style="font-family: var(--font-mono); font-size: 13px; color: var(--accent-emerald-light);"></span>
+        <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+      </div>
+      <img id="lightbox-image" class="lightbox-img" src="" alt="Zoomed view">
+    </div>
+  </div>
+
+  <!-- Processing Spinner Modal -->
+  <div class="process-modal" id="process-modal">
+    <div class="process-card">
+      <div class="pulse-dot" style="width: 14px; height: 14px;"></div>
+      <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: var(--text-main);">
+        Extracting PDF & Rendering Questions...
+      </div>
+      <div style="font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">
+        Running PyMuPDF Crop Engine & Generating KaTeX Data
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = (window.location.protocol === 'file:') ? 'http://127.0.0.1:8765' : '';
+    let allQuestions = [];
+    let activeFilter = 'all';
+    let snippetsVisible = false;
+
+    // Fetch questions from backend with local fallback
+    async function fetchQuestions() {
+      try {
+        const res = await fetch(API_BASE + '/api/questions');
+        if (res.ok) {
+          allQuestions = await res.json();
+          renderCards();
+          return;
+        }
+      } catch (err) {
+        console.warn("Backend API not reachable at " + API_BASE + ", trying local JSON file:", err);
+      }
+
+      // Local fallback if opened as file:///
+      try {
+        const localRes = await fetch('../output/questions.json');
+        if (localRes.ok) {
+          allQuestions = await localRes.json();
+          renderCards();
+          return;
+        }
+      } catch (e) {
+        console.warn("Local JSON fetch failed:", e);
+      }
+
+      // If already has questions, render them
+      if (allQuestions && allQuestions.length > 0) {
+        renderCards();
+      }
+    }
+
+    // Clear all questions
+    async function clearAllData() {
+      if (!confirm("Are you sure you want to clear all extracted questions and figures?")) return;
+      try {
+        const res = await fetch(API_BASE + '/api/clear-all', { method: 'POST' });
+        if (res.ok) {
+          allQuestions = [];
+          renderCards();
+          return;
+        }
+      } catch (err) {
+        console.warn("Backend clear failed, clearing UI directly:", err);
+      }
+      allQuestions = [];
+      renderCards();
+    }
+
+    // Upload PDF
+    async function handlePdfUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const modal = document.getElementById('process-modal');
+      modal.classList.add('active');
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch(API_BASE + '/api/upload-pdf', {
+          method: 'POST',
+          body: formData
+        });
+        if (!res.ok) {
+          throw new Error("Server responded with HTTP " + res.status);
+        }
+        const data = await res.json();
+        if (data.status === 'success') {
+          allQuestions = data.questions || [];
+          renderCards();
+        } else {
+          alert("Extraction error: " + (data.message || "Unknown error"));
+        }
+      } catch (err) {
+        alert("Upload failed: " + err.message + "\n\n💡 Tip: Please make sure the local server is running by opening: http://127.0.0.1:8765/ directly in your browser!");
+      } finally {
+        modal.classList.remove('active');
+        e.target.value = '';
+      }
+    }
+
+    // Helper: calculate page number from Question index
+    function getPageForQ(num) {
+      if (num <= 3) return 'Page 1';
+      if (num <= 6) return 'Page 2';
+      if (num <= 12) return 'Page 3';
+      if (num <= 15) return 'Page 4';
+      if (num <= 17) return 'Page 5';
+      return 'Page 6';
+    }
+
+    // Render Math via KaTeX
+    function renderMathInElem(el) {
+      if (window.renderMathInElement) {
+        try {
+          window.renderMathInElement(el, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\[', right: '\\]', display: true },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false
+          });
+        } catch (e) {
+          console.warn("KaTeX error:", e);
+        }
+      }
+    }
+
+    // Main Card Renderer
+    function renderCards() {
+      const grid = document.getElementById('cards-grid');
+      grid.innerHTML = '';
+
+      const count = allQuestions ? allQuestions.length : 0;
+      const statusText = document.getElementById('header-status-text');
+      const statusDot = document.getElementById('header-status-dot');
+
+      // Update Total Metric and Top-Right Status Badge
+      document.getElementById('stat-total').innerHTML = `${count} <span class="metric-meta">Extracted</span>`;
+
+      if (count === 0) {
+        if (statusText) statusText.textContent = 'NO PAPER LOADED';
+        if (statusDot) statusDot.style.background = '#64748b';
+        if (statusDot) statusDot.style.boxShadow = 'none';
+
+        grid.innerHTML = `
+          <div class="empty-state">
+            <span style="font-size: 32px;">📄</span>
+            <div style="font-weight: 600; font-size: 15px; color: var(--text-main);">No Question Paper Loaded Yet</div>
+            <div style="font-size: 13px; color: var(--text-muted); max-width: 420px; line-height: 1.5;">
+              Click the green <strong>"Upload New PDF"</strong> button above to upload a JEE question paper and view digitized questions.
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      if (statusText) statusText.textContent = `${count} QUESTIONS EXTRACTED`;
+      if (statusDot) {
+        statusDot.style.background = 'var(--accent-emerald)';
+        statusDot.style.boxShadow = '0 0 8px var(--accent-emerald)';
+      }
+
+      // Filter questions
+      const query = (document.getElementById('search-input').value || '').toLowerCase();
+      const filtered = allQuestions.filter(q => {
+        const num = parseInt((q.question_id || '').replace(/\D/g, ''), 10) || 0;
+        
+        // Filter pills
+        if (activeFilter === 'sec-1' && (num < 1 || num > 6)) return false;
+        if (activeFilter === 'sec-2' && (num < 7 || num > 12)) return false;
+        if (activeFilter === 'sec-3' && (num < 13 || num > 16)) return false;
+        if (activeFilter === 'sec-4' && (num < 17 || num > 18)) return false;
+        if (activeFilter === 'diagram' && !q.diagram_path) return false;
+
+        // Search query
+        if (query) {
+          const matchId = (q.question_id || '').toLowerCase().includes(query);
+          const matchText = (q.text || '').toLowerCase().includes(query);
+          const matchOpts = (q.options || []).some(o => (o.text || '').toLowerCase().includes(query));
+          return matchId || matchText || matchOpts;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            <div>No questions match current filter.</div>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(q => {
+        const num = parseInt((q.question_id || '').replace(/\D/g, ''), 10) || 0;
+        const pageLabel = getPageForQ(num);
+
+        const card = document.createElement('article');
+        card.className = 'question-card';
+        card.id = `card-Q${num}`;
+        card.setAttribute('data-testid', `card-Q${num}`);
+
+        // 1. Header
+        const header = document.createElement('div');
+        header.className = 'card-header-row';
+        header.innerHTML = `
+          <div class="card-meta-left">
+            <span class="qid-capsule">Question ${num}</span>
+            <span class="section-capsule">${q.type || 'Single Choice'}</span>
+          </div>
+          <span class="page-indicator">${pageLabel}</span>
+        `;
+        card.appendChild(header);
+
+        // 2. Question Text
+        const bodyText = document.createElement('div');
+        bodyText.className = 'question-text';
+        bodyText.id = `text-Q${num}`;
+        bodyText.setAttribute('data-testid', `text-Q${num}`);
+        bodyText.textContent = q.text || '';
+        card.appendChild(bodyText);
+
+        // 3. Matching Table (if present)
+        if (q.matching_data) {
+          const tableWrap = document.createElement('div');
+          tableWrap.className = 'matching-table-wrap';
+          
+          let tableHtml = `
+            <table class="matching-table">
+              <thead>
+                <tr>
+                  <th style="width: 50%;">${q.matching_data.col1_title || 'Column I'}</th>
+                  <th style="width: 50%;">${q.matching_data.col2_title || 'Column II'}</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          (q.matching_data.rows || []).forEach(row => {
+            tableHtml += `
+              <tr>
+                <td><span class="col-key-tag">(${row.col1_key})</span> <span>${row.col1_text}</span></td>
+                <td><span class="col-key-tag">(${row.col2_key})</span> <span>${row.col2_text}</span></td>
+              </tr>
+            `;
+          });
+
+          tableHtml += `</tbody></table>`;
+          tableWrap.innerHTML = tableHtml;
+          card.appendChild(tableWrap);
+        }
+
+        // 4. Options Grid OR Numerical Value Box
+        if (q.is_numerical) {
+          const numBox = document.createElement('div');
+          numBox.className = 'numerical-box';
+          numBox.innerHTML = `
+            <span>🔢</span>
+            <span>Numerical Value Question (Enter integer / decimal answer in exam console)</span>
+          `;
+          card.appendChild(numBox);
+        } else if (q.options && q.options.length > 0) {
+          const optContainer = document.createElement('div');
+          optContainer.className = 'options-container';
+          optContainer.id = `options-Q${num}`;
+          optContainer.setAttribute('data-testid', `options-Q${num}`);
+
+          q.options.forEach(opt => {
+            const row = document.createElement('div');
+            row.className = 'option-row';
+            
+            const keySpan = document.createElement('span');
+            keySpan.className = 'option-key';
+            keySpan.textContent = opt.key || '';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'option-text';
+            textDiv.textContent = opt.text || '';
+
+            row.appendChild(keySpan);
+            row.appendChild(textDiv);
+            optContainer.appendChild(row);
+          });
+
+          card.appendChild(optContainer);
+        }
+
+        // 5. Diagram (for Q5)
+        if (q.diagram_path) {
+          const diagPanel = document.createElement('div');
+          diagPanel.className = 'diagram-panel';
+          diagPanel.innerHTML = `
+            <div class="diagram-panel-label">
+              <span>📐 FIGURE / DIAGRAM</span>
+              <span>CLICK TO ZOOM</span>
+            </div>
+            <img class="diagram-img" 
+                 src="${q.diagram_path}" 
+                 data-testid="diagram-Q${num}"
+                 alt="Diagram for Question ${num}" 
+                 onclick="openLightbox('${q.diagram_path}', 'Question ${num} Diagram')">
+          `;
+          card.appendChild(diagPanel);
+        }
+
+        // 6. Original Paper Snippet Crop
+        if (q.question_crop_path) {
+          const snippetBox = document.createElement('div');
+          snippetBox.className = 'snippet-box';
+          
+          const toggleRow = document.createElement('div');
+          toggleRow.className = 'snippet-toggle-header';
+          toggleRow.innerHTML = `
+            <span>📄 Original Paper Snippet</span>
+            <span class="toggle-indicator">${snippetsVisible ? '▲ Hide' : '▼ View'}</span>
+          `;
+
+          const snippetImg = document.createElement('img');
+          snippetImg.className = `snippet-img snippet-img-item ${snippetsVisible ? 'show' : ''}`;
+          snippetImg.src = q.question_crop_path;
+          snippetImg.alt = `Exam Snippet Q${num}`;
+          snippetImg.onclick = () => openLightbox(q.question_crop_path, `Question ${num} Exam Crop`);
+
+          toggleRow.onclick = () => {
+            snippetImg.classList.toggle('show');
+            const ind = toggleRow.querySelector('.toggle-indicator');
+            ind.textContent = snippetImg.classList.contains('show') ? '▲ Hide' : '▼ View';
+          };
+
+          snippetBox.appendChild(toggleRow);
+          snippetBox.appendChild(snippetImg);
+          card.appendChild(snippetBox);
+        }
+
+        grid.appendChild(card);
+      });
+
+      // Render math formulas across all cards
+      renderMathInElem(grid);
+    }
+
+    // Toggle all paper snippets
+    function toggleAllSnippets() {
+      snippetsVisible = !snippetsVisible;
+      const label = document.getElementById('snippets-toggle-label');
+      label.textContent = snippetsVisible ? 'Hide Paper Snippets' : 'Show Paper Snippets';
+      
+      document.querySelectorAll('.snippet-img-item').forEach(img => {
+        if (snippetsVisible) img.classList.add('show');
+        else img.classList.remove('show');
+      });
+
+      document.querySelectorAll('.toggle-indicator').forEach(ind => {
+        ind.textContent = snippetsVisible ? '▲ Hide' : '▼ View';
+      });
+    }
+
+    // Filter Controls
+    function setFilter(filter, btn) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-pill-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderCards();
+    }
+
+    function applyFilters() {
+      renderCards();
+    }
+
+    // Lightbox Controls
+    function openLightbox(src, caption) {
+      const modal = document.getElementById('lightbox-modal');
+      const img = document.getElementById('lightbox-image');
+      const cap = document.getElementById('lightbox-caption');
+      img.src = src;
+      cap.textContent = caption || 'Figure';
+      modal.classList.add('active');
+    }
+
+    function closeLightbox() {
+      const modal = document.getElementById('lightbox-modal');
+      modal.classList.remove('active');
+    }
+
+    // Initial Load
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchQuestions();
+    });
+  </script>
+</body>
+</html>

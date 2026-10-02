@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: jee-complete-extractor
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 10000
