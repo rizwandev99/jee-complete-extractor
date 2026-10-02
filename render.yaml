@@ -4,7 +4,10 @@ services:
     runtime: docker
     plan: free
     region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /
     envVars:
       - key: PORT
         value: 10000
+

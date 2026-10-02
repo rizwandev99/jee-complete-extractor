@@ -7,5 +7,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-EXPOSE 7860
+EXPOSE 7860 10000
 CMD ["python", "server.py"]
+
